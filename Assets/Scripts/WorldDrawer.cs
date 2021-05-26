@@ -6,18 +6,21 @@ using UnityEngine;
 public class WorldDrawer : MonoBehaviour
 {
     private WorldGrid _worldGrid;
-    private int _worldSize;
     private bool _isCube;
-    private bool _isSphere;
+    private bool _isStairsRight;
+    private bool _isStairsLeft;
+    private bool _isStairsUp;
+    private bool _isStairsDown;
     private bool _isCylinder;
-    [SerializeField] private List <GameObject> _filler;
+    [SerializeField] private int _worldSize;
+    [SerializeField] private List<GameObject> _filler;
     [SerializeField] private GameObject cube;
-    [SerializeField] private GameObject sphere;
+    [SerializeField] private GameObject stairs;
     [SerializeField] private GameObject cylinder;
 
     void Start()
     {
-        _worldSize = 3;
+        // _worldSize = 3;
         _worldGrid = new WorldGrid(_worldSize);
 
         FillWorldArray();
@@ -33,7 +36,7 @@ public class WorldDrawer : MonoBehaviour
                 {
                     _worldGrid.World[i, j, k] = new Cell();
                     _worldGrid.World[i, j, k].cube = false;
-                    _worldGrid.World[i, j, k].sphere = false;
+                    _worldGrid.World[i, j, k].stairsRight = false;
                     _worldGrid.World[i, j, k].cylinder = false;
                 }
             }
@@ -55,25 +58,34 @@ public class WorldDrawer : MonoBehaviour
                 blockPos.y = (float)Math.Round(blockPos.y, MidpointRounding.AwayFromZero);
                 blockPos.z = (float)Math.Round(blockPos.z, MidpointRounding.AwayFromZero);
 
-                if(blockPos.x >= 0 &&
+                if (blockPos.x >= 0 &&
                    blockPos.y >= 0 &&
                    blockPos.z >= 0 &&
                    blockPos.x < _worldSize &&
                    blockPos.y < _worldSize &&
                    blockPos.z < _worldSize)
                 {
-                    if(_isCube)
-                    _worldGrid.World[(int)blockPos.x, (int)blockPos.y, (int)blockPos.z].cube = true;
+                    if (_isCube)
+                        _worldGrid.World[(int)blockPos.x, (int)blockPos.y, (int)blockPos.z].cube = true;
 
-                    if(_isSphere)
-                    _worldGrid.World[(int)blockPos.x, (int)blockPos.y, (int)blockPos.z].sphere = true;
+                    if (_isStairsRight)
+                        _worldGrid.World[(int)blockPos.x, (int)blockPos.y, (int)blockPos.z].stairsRight = true;
+
+                    if (_isStairsLeft)
+                        _worldGrid.World[(int)blockPos.x, (int)blockPos.y, (int)blockPos.z].stairsLeft = true;
+
+                    if (_isStairsUp)
+                        _worldGrid.World[(int)blockPos.x, (int)blockPos.y, (int)blockPos.z].stairsUp = true;
+
+                    if (_isStairsDown)
+                        _worldGrid.World[(int)blockPos.x, (int)blockPos.y, (int)blockPos.z].stairsDown = true;
 
                     if (_isCylinder)
                         _worldGrid.World[(int)blockPos.x, (int)blockPos.y, (int)blockPos.z].cylinder = true;
 
                     ClearCell();
                     CheckCell();
-                }          
+                }
             }
         }
 
@@ -91,7 +103,10 @@ public class WorldDrawer : MonoBehaviour
                 blockPos.z = (float)Math.Round(blockPos.z, MidpointRounding.AwayFromZero);
 
                 _worldGrid.World[(int)blockPos.x, (int)blockPos.y, (int)blockPos.z].cube = false;
-                _worldGrid.World[(int)blockPos.x, (int)blockPos.y, (int)blockPos.z].sphere = false;
+                _worldGrid.World[(int)blockPos.x, (int)blockPos.y, (int)blockPos.z].stairsRight = false;
+                _worldGrid.World[(int)blockPos.x, (int)blockPos.y, (int)blockPos.z].stairsLeft = false;
+                _worldGrid.World[(int)blockPos.x, (int)blockPos.y, (int)blockPos.z].stairsUp = false;
+                _worldGrid.World[(int)blockPos.x, (int)blockPos.y, (int)blockPos.z].stairsDown = false;
                 _worldGrid.World[(int)blockPos.x, (int)blockPos.y, (int)blockPos.z].cylinder = false;
 
                 ClearCell();
@@ -126,9 +141,27 @@ public class WorldDrawer : MonoBehaviour
                         _filler.Add(newCube);
                     }
 
-                    if (_worldGrid.World[i, j, k].sphere)
+                    if (_worldGrid.World[i, j, k].stairsRight)
                     {
-                        var newCube = Instantiate(sphere, new Vector3(i, j, k), Quaternion.identity);
+                        var newCube = Instantiate(stairs, new Vector3(i, j, k), Quaternion.identity);
+                        _filler.Add(newCube);
+                    }
+
+                    if (_worldGrid.World[i, j, k].stairsLeft)
+                    {
+                        var newCube = Instantiate(stairs, new Vector3(i, j, k), Quaternion.Euler(0f, 180f, 0f));
+                        _filler.Add(newCube);
+                    }
+
+                    if (_worldGrid.World[i, j, k].stairsUp)
+                    {
+                        var newCube = Instantiate(stairs, new Vector3(i, j, k), Quaternion.Euler(0f, -90f, 0f));
+                        _filler.Add(newCube);
+                    }
+
+                    if (_worldGrid.World[i, j, k].stairsDown)
+                    {
+                        var newCube = Instantiate(stairs, new Vector3(i, j, k), Quaternion.Euler(0f, 90f, 0f));
                         _filler.Add(newCube);
                     }
 
@@ -147,22 +180,72 @@ public class WorldDrawer : MonoBehaviour
     public void ChooseCube()
     {
         _isCube = true;
-        _isSphere = false;
+        _isStairsRight = false;
+        _isStairsLeft = false;
+        _isStairsUp = false;
+        _isStairsDown = false;
         _isCylinder = false;
     }
 
-    public void ChooseSphere()
+    public void StairsRight()
     {
         _isCube = false;
-        _isSphere = true;
+        _isStairsRight = true;
+        _isStairsLeft = false;
+        _isStairsUp = false;
+        _isStairsDown = false;
+        _isCylinder = false;
+    }
+
+    public void StairsLeft()
+    {
+        _isCube = false;
+        _isStairsRight = false;
+        _isStairsLeft = true;
+        _isStairsUp = false;
+        _isStairsDown = false;
+        _isCylinder = false;
+    }
+
+    public void StairsUp()
+    {
+        _isCube = false;
+        _isStairsRight = false;
+        _isStairsLeft = false;
+        _isStairsUp = true;
+        _isStairsDown = false;
+        _isCylinder = false;
+    }
+
+    public void StairsDown()
+    {
+        _isCube = false;
+        _isStairsRight = false;
+        _isStairsLeft = false;
+        _isStairsUp = false;
+        _isStairsDown = true;
         _isCylinder = false;
     }
 
     public void ChooseCylinder()
     {
         _isCube = false;
-        _isSphere = false;
+        _isStairsRight = false;
+        _isStairsLeft = false;
+        _isStairsUp = false;
+        _isStairsDown = false;
         _isCylinder = true;
+    }
+
+    public void MakeStairsFromBlocks()
+    {
+        foreach (var item in _filler)
+        {
+            if (item.tag == "Stairs")
+                item.GetComponent<BoxCollider>().enabled = false;
+        }
+
+
     }
 
 }
